@@ -5,6 +5,7 @@ import zad2.model.Currency;
 
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @AllArgsConstructor
 
@@ -29,7 +30,15 @@ public class CurrencyService {
         Random random = new Random();
         double simulatedRate = 0.5 + (1.5 - 0.5) * random.nextDouble();
 
-        System.out.println("API Simulation: A course with " + currencyFrom + " at " + currencyTo + " = " + simulatedRate);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted during simulated API request", e);
+        }
+
+        System.out.println("API Simulation: A course with " + currencyFrom + " to " + currencyTo + " = " + simulatedRate);
         return simulatedRate;
     }
+
 }

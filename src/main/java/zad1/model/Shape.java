@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.*;
 
+import java.io.Serializable;
+
 @JsonPropertyOrder({"type", "perimeter", "radius", "width", "height", "area", "side"})
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
@@ -18,7 +20,7 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 
-public abstract class Shape {
+public abstract class Shape implements Serializable {
 
     public abstract String getType();
     public abstract double getArea();

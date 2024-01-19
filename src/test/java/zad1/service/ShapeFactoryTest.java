@@ -5,7 +5,6 @@ import zad1.model.Rectangle;
 import zad1.model.Square;
 import org.junit.Before;
 import org.junit.Test;
-import zad1.ShapeFactory;
 
 import static org.junit.Assert.*;
 

@@ -3,7 +3,7 @@ package zad1.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import zad1.ShapeService;
+import zad1.exceptions.ShapeNotFoundException;
 import zad1.model.Circle;
 import zad1.model.Rectangle;
 import zad1.model.Shape;
@@ -13,8 +13,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class ShapeServiceTest {
+public class ShapeServiceTest implements Serializable {
 
 
     @Mock
@@ -92,6 +91,38 @@ public class ShapeServiceTest {
     public void testImportShapesFromJsonWithValidData() {
         List<Shape> result = service.importShapesFromJson(path);
         assertNotNull("The list should not be null", result);
+    }
+
+    @Test
+    public void testSerializationAndDeserialization() throws IOException, ClassNotFoundException {
+        String testMessage = "Shape not found!";
+        ShapeNotFoundException originalException = new ShapeNotFoundException(testMessage);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(originalException);
+        oos.close();
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        ShapeNotFoundException deserializedException = (ShapeNotFoundException) ois.readObject();
+
+        assertEquals("Serialized and deserialized messages should be equal",
+                testMessage, deserializedException.getMessage());
+    }
+
+    @Test
+    public void testShapeSerializationAndDeserialization() throws IOException, ClassNotFoundException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(r1);
+        oos.close();
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        Shape deserializedShape = (Shape) ois.readObject();
+
+        assertEquals(r1, deserializedShape);
     }
 }
 

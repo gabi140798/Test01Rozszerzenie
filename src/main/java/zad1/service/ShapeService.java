@@ -1,4 +1,4 @@
-package zad1;
+package zad1.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,9 +7,10 @@ import zad1.model.Shape;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
-public class ShapeService {
+public class ShapeService implements Serializable {
 
      static ObjectMapper objectMapper = new ObjectMapper();
 

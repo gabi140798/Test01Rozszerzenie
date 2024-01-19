@@ -1,4 +1,4 @@
-package zad1;
+package zad1.service;
 
 import zad1.model.Circle;
 import zad1.model.Rectangle;
