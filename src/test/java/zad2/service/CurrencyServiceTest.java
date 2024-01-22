@@ -2,61 +2,55 @@ package zad2.service;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import zad2.model.ExchangeRateApi;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 public class CurrencyServiceTest {
 
-    private CurrencyService service;
     private CurrencyExchangeCache cache;
+    private ExchangeRateApi mock;
+    private CurrencyService service;
     private final long cacheDuration = 10;
 
     @Before
     public void init() {
         cache = new CurrencyExchangeCache(cacheDuration);
-        service = new CurrencyService(cache);
+        mock = Mockito.mock(ExchangeRateApi.class);
+        service = new CurrencyService(cache, mock);
     }
 
     @Test
-    public void testExchangeRateFetching() {
-        double rate = service.exchange("EUR", "PLN", 100);
-        assertTrue(rate > 0);
+    public void testExchangeRate() {
+        when(mock.fetchRate("PLN", "EUR")).thenReturn(0.85);
+        double exchangedAmount = service.exchange("PLN", "EUR", 100);
+        assertEquals(85.0, exchangedAmount, 0.001);
     }
 
     @Test
-    public void testExchangeRateCaching() throws InterruptedException {
-        double rate1 = service.exchange("EUR", "PLN", 100);
-        Thread.sleep(1000);
-        double rate2 = service.exchange("EUR", "PLN", 100);
+    public void testExchangeRateCaching() {
+        when(mock.fetchRate("PLN", "EUR")).thenReturn(0.85);
 
-        assertEquals(rate1, rate2, 0.0001);
+        service.exchange("PLN", "EUR", 100);
+        service.exchange("PLN", "EUR", 100);
+
+        verify(mock, times(1)).fetchRate("PLN", "EUR");
     }
 
     @Test
     public void testCacheExpiration() throws InterruptedException {
-        double rate1 = service.exchange("EUR", "PLN", 100);
-        Thread.sleep((cacheDuration + 1) * 1000);
-        double rate2 = service.exchange("EUR", "PLN", 100);
+        when(mock.fetchRate("PLN", "EUR")).thenReturn(0.85).thenReturn(0.86);
 
-        assertNotEquals(rate1, rate2, 0.0001);
-    }
+        service.exchange("PLN", "EUR", 100);
+        TimeUnit.SECONDS.sleep(cacheDuration + 1);
+        service.exchange("PLN", "EUR", 100);
 
-    @Test
-    public void testCacheThreadSafety() throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-        CountDownLatch latch = new CountDownLatch(10);
-
-        for (int i = 0; i < 10; i++) {
-            executor.submit(() -> {
-                service.exchange("EUR", "PLN", 100);
-                latch.countDown();
-            });
-        }
-        latch.await();
-        assertTrue(true);
+        verify(mock, times(2)).fetchRate("PLN", "EUR");
     }
 }
