@@ -1,8 +1,8 @@
 package zad2.service;
 
 import zad2.model.Currency;
+import zad2.model.ExchangeRateApi;
 
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,13 +20,13 @@ public class CurrencyExchangeCache {
         executor = Executors.newScheduledThreadPool(1);
     }
 
-    public Optional<Double> getRate(Currency currency) {
-        return Optional.ofNullable(rates.get(currency));
-    }
-
-    public void putRate(Currency currency, Double rate) {
-        rates.put(currency, rate);
-        executor.schedule(() -> rates.remove(currency), duration, TimeUnit.SECONDS);
+    public double getOrFetchRate(Currency currency, ExchangeRateApi api) {
+        return rates.computeIfAbsent(currency, key -> {
+            double fetchedRate = api.fetchRate(key.getCurrencyFrom(), key.getCurrencyTo());
+            executor.schedule(() -> rates.remove(key), duration, TimeUnit.SECONDS);
+            return fetchedRate;
+        });
     }
 }
+
 
